@@ -2,8 +2,10 @@ const About =  require('../models/about')
 
 const getAboutPage = async (req, res) => {
     try {
-        console.log(About)
         const aboutData = await About.findOne()
+        if (!aboutData) {
+            
+        }
         res.json(aboutData)
     } catch (error) {
         res.status(500).json({
@@ -14,5 +16,4 @@ const getAboutPage = async (req, res) => {
 
 module.exports = {
     getAboutPage,
-    
 }
