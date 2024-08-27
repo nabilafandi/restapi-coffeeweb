@@ -2,6 +2,7 @@ require("dotenv").config();
 const mongoose = require('mongoose');
 const imageService = require('./services/imageService');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/?retryWrites=true&w=majority&appName=${process.env.DB_NAME}`
+console.log(uri)
 const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 
 mongoose.connect(uri, clientOptions)
