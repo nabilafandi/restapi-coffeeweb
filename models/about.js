@@ -1,17 +1,14 @@
 const mongoose = require('mongoose')
 
 const aboutSchema = new mongoose.Schema({
-    name: {
+    data_id: {
         type: String,
         required:true,
         unique:true
     },
     title: String,
     content: String,
-    image: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Image'
-    }
+    imageUrl: [String],
 })
 
 const About = mongoose.model('About', aboutSchema);
