@@ -11,7 +11,7 @@ const {
 // auth
 async function createToken() {
   const endPoint = "/token";
-  data = {
+  const data = {
     app_id: OLSERA_APP_ID,
     secret_key: OLSERA_SECRET_KEY,
     grant_type: "secret_key",
@@ -57,6 +57,26 @@ async function fetchCustomers() {
   }
 }
 
+async function fetchCustomersByEmail(email) {
+  const endPoint = "/customersupplier/customer";
+  try {
+    const response = await axios.get(OLSERA_BASE_URL + endPoint, {
+      headers: {
+        Authorization: "Bearer " + OLSERA_ACCESS_TOKEN,
+      },
+      params: {
+        "search_column[]": "email",
+        "search_operator[]": "=",
+        "search_text[]": email,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error( "Failed to fetch customers: " + error.message + "\n" + JSON.stringify(error.response.data.error)
+    );
+  }
+}
+
 async function fetchCustomerById(customer_id) {
   const endPoint = "/customersupplier/customer/detail";
   try {
@@ -81,7 +101,7 @@ async function fetchCustomerById(customer_id) {
 
 async function createCustomer() {
   const endPoint = "/order/openorder";
-  data = {
+  const data = {
     order_date: new Date().toISOString().slice(0, 10),
     currency_id: "IDR",
     customer_email: "johndoe@domain.com",
@@ -128,3 +148,13 @@ async function fetchProducts() {
     );
   }
 }
+
+
+module.exports = {
+  createToken,
+  fetchCustomers,
+  fetchCustomerById,
+  createCustomer,
+  fetchCustomersByEmail,
+  fetchProducts,
+};
