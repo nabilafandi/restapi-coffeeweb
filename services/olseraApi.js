@@ -23,10 +23,12 @@ async function requestOlsera(endpoint, params = {}, method = "GET", payload = nu
     params: method === "GET" ? params : undefined,
     data: method === "POST" ? payload : undefined,
   };
+  console.log(config)
   try {
     const response = await axios.request(config);
     return response.data;
   } catch (error) {
+    // console.error(error)
     if (error.response && error.response.status === 401) {
       throw new Error("Unauthorized: Access token may be invalid.");
     }
@@ -77,6 +79,30 @@ async function refreshToken(refreshToken) {
 }
 
 // customers
+async function orderCreate() {
+  const date = new Date(Date.now());
+
+  const formattedDate = date.toISOString().split('T')[0];
+  const payload = {
+    order_date: formattedDate,
+    currency_id: "IDR",
+    notes:"pallasweb test order", 
+    customer_id: undefined,
+    customer_email: undefined,
+    customer_name: undefined,
+    customer_phone: undefined,
+  }
+  return requestOlsera("/order/openorder", {}, "POST", payload);
+}
+async function orderAddItems(orderId) {
+  const payload = {
+    order_id: String(orderId),
+    item_products: "19367123",
+    item_qty: 6,
+  }
+  return requestOlsera("/order/openorder/additem", {}, "POST", payload);
+}
+
 async function fetchCustomers() {
   const endPoint = "/customersupplier/customer";
   const accessToken = await getAccessToken()
@@ -175,6 +201,8 @@ async function createCustomer() {
 module.exports = {
   createToken,
   refreshToken,
+  orderCreate,
+  orderAddItems,
   fetchCustomers,
   fetchCustomerById,
   createCustomer,

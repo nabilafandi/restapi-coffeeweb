@@ -25,7 +25,15 @@ const addToCart = async (req, res) => {
       if (existingItem) {
         existingItem.quantity += item.quantity;
       } else {
-        cart.items.push(item);
+        cart.items.push({
+          productName: item.productName,
+          variantName: item.variantName,
+          productId: item.productId,
+          isVariant: item.isVariant,
+          quantity: item.quantity,
+          price: item.price,
+          imageUrl: item.imageUrl,
+        });
       }
     });
 
@@ -45,11 +53,27 @@ const getCartByUserId = async (req, res) => {
   try {
     const cart = await findOrCreateCart({ sessionId, userId });
 
-    if (!cart || cart.items.length === 0) {
+    if (!cart) {
       return res.status(404).json({ message: "Cart is empty or not found" });
     }
 
-    res.status(200).json(cart);
+    const simplifiedItems = cart.items.map((item) => ({
+      productName: item.productName,
+      variantName: item.variantName,
+      productId: item.productId,
+      isVariant: item.isVariant,
+      quantity: item.quantity,
+      price: item.price,
+      imageUrl: item.imageUrl,
+    }));
+    const response = {
+      userId: cart.userId,
+      subTotal: cart.subTotal,
+      sessionId: cart.sessionId,
+      items: simplifiedItems,
+
+    };
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error retrieving cart:", error.message);
     res.status(500).json({ message: "Failed to retrieve the cart" });
