@@ -14,6 +14,10 @@ const olseraTokenSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
+    refreshTokenexpiryTime: {
+        type: Date,
+        required: true,
+    },
     appId: {
         type: String,
         required: true,

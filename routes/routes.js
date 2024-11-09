@@ -6,12 +6,14 @@ const authRoute = require('../controllers/auth/auth.routes');
 const aboutRoute = require('../controllers/about/about.routes');
 const productRoute = require('../controllers/product/product.routes');
 const cartRoute = require('../controllers/cart/cart.routes');
+const olseraAuthRoute = require('../controllers/olseraAuth/olseraAuth.routes');
 
 
 // Use your authentication middleware
 routers.use(OlseraAuthMiddleware);
 
 
+routers.use('/olseraauth', olseraAuthRoute);
 routers.use('/user', authRoute);
 routers.use('/about', aboutRoute);
 routers.use('/products', productRoute);

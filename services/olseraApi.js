@@ -2,67 +2,78 @@ require("dotenv").config();
 const axios = require("axios");
 const OlseraToken = require('../models/olseraToken')
 
-const {
-  OLSERA_BASE_URL,
-  OLSERA_APP_ID,
-  OLSERA_SECRET_KEY,
-} = process.env;
+const { OLSERA_BASE_URL, OLSERA_APP_ID, OLSERA_SECRET_KEY, } = process.env;
+if (!OLSERA_BASE_URL || !OLSERA_APP_ID || !OLSERA_SECRET_KEY) {
+  throw new Error("Missing required olsera environment variables.");
+}
 
 async function getAccessToken() {
   const olseraApp = await OlseraToken.findOne({ appId: OLSERA_APP_ID })
+  if (!olseraApp) throw new Error("getAccessToken error: Olsera App not found.");
   return olseraApp.accessToken
 }
+async function requestOlsera(endpoint, params = {}, method = "GET", payload = null) {
+  const accessToken = await getAccessToken();
 
-
-// auth
-async function createToken() {
-  const endPoint = "/token";
-  const data = {
-    app_id: OLSERA_APP_ID,
-    secret_key: OLSERA_SECRET_KEY,
-    grant_type: "secret_key",
+  // Prepare the configuration object
+  const config = {
+    method: method.toUpperCase(),
+    url: `${OLSERA_BASE_URL}${endpoint}`,
+    headers: { Authorization: `Bearer ${accessToken}` },
+    params: method === "GET" ? params : undefined,
+    data: method === "POST" ? payload : undefined,
   };
-
   try {
-    const response = await axios.post(OLSERA_BASE_URL + endPoint, data, {});
-    console.log(response.data);
+    const response = await axios.request(config);
     return response.data;
   } catch (error) {
+    if (error.response && error.response.status === 401) {
+      throw new Error("Unauthorized: Access token may be invalid.");
+    }
     throw new Error(
-      "Failed to create customer: " +
-      error.message +
-      "\n" +
-      JSON.stringify(error.response.data.error)
+      "Olsera API: Failed to fetch data: " + (error.response?.data?.error || error.message)
     );
   }
 }
-async function refreshToken(refresh_token) {
-  const endPoint = "/token";
-  const data = {
-    refresh_token: refresh_token,
-    grant_type: "refresh_token",
-  };
 
-  console.log('service olserapi')
-  try {
-    console.log("data", data)
-    const response = await axios.post(OLSERA_BASE_URL + endPoint, data, {});
-    return response.data
-  } catch (error) {
-    // throw {"errornabil": error}
-    // console.log("error.response nabil", error.response)
-    const statusCode = error.response?.data?.error?.status_code;
-    console.log(statusCode)
-    if (statusCode === 401) {
-      throw { message: 'Invalid refresh token, please re-authenticate', status: 401 };
-    } else {
-      throw { message: "error", status: statusCode || 500 };
-    }
-
+// products
+async function fetchProducts() {
+  return requestOlsera("/product");
+}
+async function fetchProductDetails(productId) {
+  const params = {
+    "id": Number(productId)
   }
+  return requestOlsera("/product/detail",params)
+}
+async function fetchProductByClassification(classification) {
+  const params = {
+    "search_column[]": "klasifikasi_id",
+    "search_text[]": classification,
+    "per_page": 100,
+  };
+  return requestOlsera("/product", params);
+}
+async function fetchProductGroups() {
+  const params = { "per_page": 100 };
+  return requestOlsera("/productgroup", params);
+}
 
-
-
+// auth
+async function createToken() {
+  const payload = {
+    app_id: OLSERA_APP_ID,
+    secret_key: OLSERA_SECRET_KEY,
+    grant_type: "secret_key",
+  }
+  return requestOlsera("/token", {}, "POST", payload);
+}
+async function refreshToken(refreshToken) {
+  const payload = {
+    refreshToken,
+    grant_type: "refresh_token"
+  }
+  return requestOlsera("/token", {}, "POST", payload);
 }
 
 // customers
@@ -161,76 +172,6 @@ async function createCustomer() {
   }
 }
 
-// products
-async function fetchProducts() {
-  const endPoint = "/product";
-  const accessToken = await getAccessToken()
-
-  try {
-    const response = await axios.get(OLSERA_BASE_URL + endPoint, {
-      headers: {
-        Authorization: "Bearer " + accessToken,
-      },
-      params: {
-      },
-    });
-    console.log(response.data);
-    return response.data;
-  } catch (error) {
-    console.log(error.response.data.error)
-    throw new Error(
-      "Olsera API: Failed to fetch data: " + error.response.data.error
-    );
-  }
-}
-async function fetchProductByClassification(classification) {
-  const endPoint = "/product";
-  const accessToken = await getAccessToken()
-
-  try {
-    const response = await axios.get(OLSERA_BASE_URL + endPoint, {
-      headers: {
-        Authorization: "Bearer " + accessToken,
-      },
-      params: {
-        "search_column[]": "klasifikasi_id",
-        "search_text[]": classification,
-        "per_page": 100
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.log(error.response.data.error)
-    throw new Error(
-      "Olsera API: Failed to fetch data: " + error.response.data.error
-    );
-  }
-}
-async function fetchProductGroups() {
-  const endPoint = "/productgroup";
-  const accessToken = await getAccessToken()
-
-  try {
-    const response = await axios.get(OLSERA_BASE_URL + endPoint, {
-      headers: {
-        Authorization: "Bearer " + accessToken,
-      },
-      params: {
-        "per_page": 100
-      },
-    });
-    console.log(response.data);
-    return response.data;
-  } catch (error) {
-    console.log(error.response.data.error)
-    throw new Error(
-      "Olsera API: Failed to fetch data: " + error.response.data.error
-    );
-  }
-}
-
-
-
 module.exports = {
   createToken,
   refreshToken,
@@ -239,6 +180,7 @@ module.exports = {
   createCustomer,
   fetchCustomersByEmail,
   fetchProducts,
+  fetchProductDetails,
   fetchProductGroups,
   fetchProductByClassification,
 };

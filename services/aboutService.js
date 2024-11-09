@@ -17,8 +17,6 @@ const createAbout = async (aboutData) => {
 const getAboutByName = async (aboutName) => {
   try {
     const aboutFound = await About.findOne({ data_id: aboutName });
-    console.log('abotname', aboutName)
-    console.log("about found: ", aboutFound);
     return aboutFound;
   } catch (error) {
     console.error("Error creating about: ", error);
