@@ -23,7 +23,6 @@ async function requestOlsera(endpoint, params = {}, method = "GET", payload = nu
     params: method === "GET" ? params : undefined,
     data: method === "POST" ? payload : undefined,
   };
-  console.log(config)
   try {
     const response = await axios.request(config);
     return response.data;

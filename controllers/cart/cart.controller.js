@@ -1,13 +1,7 @@
 const Cart = require("../../models/cart");
+const { findOrCreateCart } = require("../../services/cartService");
 
 // Helper to find or create a cart based on sessionId or userId
-const findOrCreateCart = async ({ sessionId, userId, items = [] }) => {
-  let cart = await Cart.findOne({ $or: [{ sessionId }, { userId }] });
-  if (!cart) {
-    cart = new Cart({ userId: userId || null, sessionId, items });
-  }
-  return cart;
-};
 
 // Add to cart function
 const addToCart = async (req, res) => {
