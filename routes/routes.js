@@ -1,37 +1,21 @@
 const express = require("express");
 const routers = express.Router();
 
+const OlseraAuthMiddleware = require("../middleware/OlseraAuthMiddleware");
+const authRoute = require("../controllers/auth/auth.routes");
+const aboutRoute = require("../controllers/about/about.routes");
+const productRoute = require("../controllers/product/product.routes");
+const cartRoute = require("../controllers/cart/cart.routes");
+const orderRoute = require("../controllers/order/order.routes");
+const olseraAuthRoute = require("../controllers/olseraAuth/olseraAuth.routes");
 
-const OlseraAuthMiddleware = require('../middleware/OlseraAuthMiddleware');
-const authRoute = require('../controllers/auth/auth.routes');
-const aboutRoute = require('../controllers/about/about.routes');
-const productRoute = require('../controllers/product/product.routes');
-const cartRoute = require('../controllers/cart/cart.routes');
-const olseraAuthRoute = require('../controllers/olseraAuth/olseraAuth.routes');
-const { orderAddItems, orderCreate } = require("../services/olseraApi");
-
-
-// Use your authentication middleware
 routers.use(OlseraAuthMiddleware);
 
+routers.use("/olseraauth", olseraAuthRoute);
+routers.use("/user", authRoute);
+routers.use("/about", aboutRoute);
+routers.use("/products", productRoute);
+routers.use("/cart", cartRoute);
+routers.use("/order", orderRoute);
 
-routers.use('/olseraauth', olseraAuthRoute);
-routers.use('/user', authRoute);
-routers.use('/about', aboutRoute);
-routers.use('/products', productRoute);
-routers.use('/cart', cartRoute);
-routers.get('/', (req, res) => { 
-    const sessionId = req.session.id; 
-    console.log('yoursessionid get', sessionId)
-    res.send(`Your session ID is: ${sessionId}`);
-  });
-routers.post('/', async (req, res) => {
-    const responseCreateOrder = await orderCreate()
-    const responseOrderAddItems = await orderAddItems(responseCreateOrder.data.id)
-    console.log(responseOrderAddItems)
-    // orderAddItems()
-    const sessionId = req.session.id; 
-    console.log('yoursessionid post', sessionId)
-    res.send(`Your session ID is: ${sessionId}`);
-  });
 module.exports = routers;

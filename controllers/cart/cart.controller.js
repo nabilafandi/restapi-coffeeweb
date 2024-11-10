@@ -13,23 +13,35 @@ const findOrCreateCart = async ({ sessionId, userId, items = [] }) => {
 const addToCart = async (req, res) => {
   const sessionId = req.session.id;
   const { userId, items } = req.body;
+  console.log(items)
 
   try {
     let cart = await findOrCreateCart({ sessionId, userId });
 
     // Update or add items in the cart
     items.forEach((item) => {
-      const existingItem = cart.items.find(
-        (i) => i.productId == item.productId
-      );
+      const existingItem = cart.items.find((i) => {
+        if (item.isVariant) {
+          return (
+            i.productVariantId == item.productVariantId
+          );
+        }
+        else {
+          return i.productId == item.productId
+        }
+      });
+
       if (existingItem) {
+        // Update quantity if the matching item is found
         existingItem.quantity += item.quantity;
       } else {
+        // Add new item if no matching product (or variant) found
         cart.items.push({
           productName: item.productName,
-          variantName: item.variantName,
+          variantName: item.variantName || null,
+          productVariantId: item.productVariantId || null,
           productId: item.productId,
-          isVariant: item.isVariant,
+          isVariant: item.isVariant || false,
           quantity: item.quantity,
           price: item.price,
           imageUrl: item.imageUrl,
@@ -44,6 +56,7 @@ const addToCart = async (req, res) => {
     res.status(500).json({ message: "Failed to add items to the cart" });
   }
 };
+
 
 // Get cart by userId or sessionId
 const getCartByUserId = async (req, res) => {
@@ -60,6 +73,7 @@ const getCartByUserId = async (req, res) => {
     const simplifiedItems = cart.items.map((item) => ({
       productName: item.productName,
       variantName: item.variantName,
+      productVariantId: item.productVariantId,
       productId: item.productId,
       isVariant: item.isVariant,
       quantity: item.quantity,

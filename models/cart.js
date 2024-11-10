@@ -25,6 +25,9 @@ const CartSchema = new mongoose.Schema({
         default: false,
         requried: true,
       },
+      productVariantId: {
+        type: String,
+      },
       variantName: {
         type: String,
         default: false,

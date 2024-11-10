@@ -19,7 +19,7 @@ async function requestOlsera(endpoint, params = {}, method = "GET", payload = nu
   const config = {
     method: method.toUpperCase(),
     url: `${OLSERA_BASE_URL}${endpoint}`,
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: { Authorization: `Bearer ${accessToken}` , Accept: 'application/json'},
     params: method === "GET" ? params : undefined,
     data: method === "POST" ? payload : undefined,
   };
@@ -32,9 +32,8 @@ async function requestOlsera(endpoint, params = {}, method = "GET", payload = nu
     if (error.response && error.response.status === 401) {
       throw new Error("Unauthorized: Access token may be invalid.");
     }
-    throw new Error(
-      "Olsera API: Failed to fetch data: " + (error.response?.data?.error || error.message)
-    );
+    const errorDetails = error.response?.data?.error ? error.response.data.error : error.message;
+    throw { message: "Olsera API: Failed to fetch data", error: errorDetails };
   }
 }
 
@@ -94,11 +93,11 @@ async function orderCreate() {
   }
   return requestOlsera("/order/openorder", {}, "POST", payload);
 }
-async function orderAddItems(orderId) {
+async function orderAddItems(orderId, item, qty) {
   const payload = {
     order_id: String(orderId),
-    item_products: "19367123",
-    item_qty: 6,
+    item_products: item,
+    item_qty: qty,
   }
   return requestOlsera("/order/openorder/additem", {}, "POST", payload);
 }
